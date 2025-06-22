@@ -1,3 +1,5 @@
+-- Safe Vehicle Boost by ZoroModsTzy
+
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -5,76 +7,62 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local boosted = false
 
--- Tunggu PlayerGui ready
-local playerGui = player:WaitForChild("PlayerGui")
-
--- Buat GUI tombol Nitro
+-- Buat GUI Nitro (tombol HP)
 local function createGui()
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "ZoroBoostGui"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = playerGui
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "ZoroBoostGui"
+    gui.ResetOnSpawn = false
+    gui.Parent = player:WaitForChild("PlayerGui")
 
-    local button = Instance.new("TextButton")
-    button.Name = "BoostButton"
-    button.Size = UDim2.new(0, 120, 0, 50)
-    button.Position = UDim2.new(0.8, 0, 0.8, 0)
-    button.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-    button.Text = "NITRO: OFF"
-    button.TextScaled = true
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.Font = Enum.Font.GothamBold
-    button.BackgroundTransparency = 0.2
-    button.BorderSizePixel = 2
-    button.AutoButtonColor = true
-    button.ClipsDescendants = true
-    button.Parent = screenGui
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0,120,0,50)
+    btn.Position = UDim2.new(0.8,0,0.8,0)
+    btn.BackgroundColor3 = Color3.fromRGB(255,80,80)
+    btn.Text = "NITRO: OFF"
+    btn.TextScaled = true
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = gui
 
-    button.MouseButton1Click:Connect(function()
+    btn.MouseButton1Click:Connect(function()
         boosted = not boosted
-        button.Text = boosted and "NITRO: ON" or "NITRO: OFF"
-        button.BackgroundColor3 = boosted and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(255, 80, 80)
+        btn.Text = boosted and "NITRO: ON" or "NITRO: OFF"
+        btn.BackgroundColor3 = boosted and Color3.fromRGB(0,200,0) or Color3.fromRGB(255,80,80)
+    end)
+end
+createGui()
+
+-- Fungsi boost aman < 250 speed (bypass kick)
+local function applySafeBoost(root)
+    local bv = root:FindFirstChild("ZoroBoostBV") or Instance.new("BodyVelocity")
+    bv.Name = "ZoroBoostBV"
+    bv.MaxForce = Vector3.new(1e5, 0, 1e5)
+    bv.Velocity = root.CFrame.LookVector * 249 -- <--- batas aman
+    bv.P = 5000
+    bv.Parent = root
+    task.delay(0.1, function()
+        if bv and bv.Parent then
+            bv:Destroy()
+        end
     end)
 end
 
--- Fungsi boost kendaraan
-local function boostVehicle(seat)
-    if seat and seat:IsA("VehicleSeat") then
-        seat:SetAttribute("OverrideSpeed", true)
-        seat:SetAttribute("ClientBoost", boosted)
-        seat:SetAttribute("LastOverride", tick())
-
-        pcall(function()
-            seat.MaxSpeed = 234
-            seat.Torque = 200000
-            seat.Throttle = 1
-        end)
-    end
-end
-
--- Keybind tombol W (maju)
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.W then
-        boosted = true
+-- Keybind W (PC)
+UIS.InputBegan:Connect(function(i, gp)
+    if not gp and i.KeyCode == Enum.KeyCode.W and boosted then
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            applySafeBoost(char.HumanoidRootPart)
+        end
     end
 end)
 
-UIS.InputEnded:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.W then
-        boosted = false
-    end
-end)
-
--- Inisialisasi GUI
-createGui()
-
--- Loop boost kendaraan
+-- Loop terus boost saat mode ON
 RunService.Heartbeat:Connect(function()
-    local character = player.Character
-    if character then
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            boostVehicle(humanoid.SeatPart)
+    if boosted then
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            applySafeBoost(char.HumanoidRootPart)
         end
     end
 end)
