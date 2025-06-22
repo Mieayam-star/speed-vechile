@@ -40,9 +40,13 @@ end
 -- Fungsi boost kendaraan
 local function boostVehicle(seat)
     if seat and seat:IsA("VehicleSeat") then
+        seat:SetAttribute("OverrideSpeed", true)
+        seat:SetAttribute("ClientBoost", boosted)
+        seat:SetAttribute("LastOverride", tick())
+
         pcall(function()
-            seat.MaxSpeed = boosted and 234 or 100
-            seat.Torque = boosted and 200000 or 100000
+            seat.MaxSpeed = 234
+            seat.Torque = 200000
             seat.Throttle = 1
         end)
     end
