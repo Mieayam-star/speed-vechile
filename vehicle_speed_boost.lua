@@ -1,4 +1,4 @@
--- Safe Vehicle Boost by ZoroModsTzy
+-- Boost manual saat NITRO ON + tombol W ditekan (by ZoroModsTzy)
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -6,8 +6,9 @@ local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local boosted = false
+local keyHeld = false
 
--- Buat GUI Nitro (tombol HP)
+-- GUI Nitro
 local function createGui()
     local gui = Instance.new("ScreenGui")
     gui.Name = "ZoroBoostGui"
@@ -32,12 +33,12 @@ local function createGui()
 end
 createGui()
 
--- Fungsi boost aman < 250 speed (bypass kick)
+-- Fungsi Boost (dengan batas aman 249)
 local function applySafeBoost(root)
     local bv = root:FindFirstChild("ZoroBoostBV") or Instance.new("BodyVelocity")
     bv.Name = "ZoroBoostBV"
     bv.MaxForce = Vector3.new(1e5, 0, 1e5)
-    bv.Velocity = root.CFrame.LookVector * 249 -- <--- batas aman
+    bv.Velocity = root.CFrame.LookVector * 249
     bv.P = 5000
     bv.Parent = root
     task.delay(0.1, function()
@@ -47,19 +48,22 @@ local function applySafeBoost(root)
     end)
 end
 
--- Keybind W (PC)
-UIS.InputBegan:Connect(function(i, gp)
-    if not gp and i.KeyCode == Enum.KeyCode.W and boosted then
-        local char = player.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            applySafeBoost(char.HumanoidRootPart)
-        end
+-- Deteksi tombol W ditekan/dilepas
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.W then
+        keyHeld = true
     end
 end)
 
--- Loop terus boost saat mode ON
+UIS.InputEnded:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.W then
+        keyHeld = false
+    end
+end)
+
+-- Loop Boost saat GUI ON + Tombol W ditekan
 RunService.Heartbeat:Connect(function()
-    if boosted then
+    if boosted and keyHeld then
         local char = player.Character
         if char and char:FindFirstChild("HumanoidRootPart") then
             applySafeBoost(char.HumanoidRootPart)
