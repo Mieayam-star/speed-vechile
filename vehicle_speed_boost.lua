@@ -41,22 +41,22 @@ end
 local function boostVehicle(seat)
     if seat and seat:IsA("VehicleSeat") then
         pcall(function()
-            seat.MaxSpeed = boosted and 600 or 300
+            seat.MaxSpeed = boosted and 234 or 100
             seat.Torque = boosted and 200000 or 100000
             seat.Throttle = 1
         end)
     end
 end
 
--- Keybind PC SHIFT
+-- Keybind tombol W (maju)
 UIS.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.LeftShift then
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.W then
         boosted = true
     end
 end)
 
 UIS.InputEnded:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.LeftShift then
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.W then
         boosted = false
     end
 end)
